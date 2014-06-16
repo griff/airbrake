@@ -165,9 +165,14 @@ module Airbrake
       end
     end
 
+    def is_exception?(exception)
+      exception.is_a?(Exception) || 
+      (defined?(JRUBY_VERSION) && exception.is_a?(Java::java::lang::Exception))
+    end
+
     def build_notice_for(exception, opts = {})
       exception = unwrap_exception(exception)
-      opts = opts.merge(:exception => exception) if exception.is_a?(Exception)
+      opts = opts.merge(:exception => exception) if is_exception?(exception)
       opts = opts.merge(exception.to_hash) if exception.respond_to?(:to_hash)
       Notice.new(configuration.merge(opts))
     end

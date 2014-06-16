@@ -70,6 +70,19 @@ class NotifierTest < Test::Unit::TestCase
     assert_sent notice, :exception => exception
   end
 
+  if defined?(JRUBY_VERSION)
+    should "create and send a notice for a java exception" do
+      set_public_env
+      exception = build_java_exception
+      stub_sender!
+      notice = stub_notice!
+
+      Airbrake.notify(exception)
+
+      assert_sent notice, :exception => exception
+    end
+  end
+
   should "create and send a notice for a hash" do
     set_public_env
     notice = stub_notice!

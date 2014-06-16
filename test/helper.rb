@@ -126,6 +126,14 @@ module TestHelpers
     BacktracedException.new(opts)
   end
 
+  def build_java_exception(opts = {})
+    backtrace = ["Rack::MethodOverride.call([PROJECT_ROOT]/vendor/bundle/gems/rack-1.4.5/lib/rack/methodoverride.rb:21)",
+                 "TestHelpers.build_java_exception([PROJECT_ROOT]/test/helper.rb:131)",
+                 "org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(org/apache/catalina/core/ApplicationFilterChain.java:305)"]
+    opts = {:backtrace => backtrace}.merge(opts)
+    JavaBacktracedException.new(opts)
+  end
+
   def build_notice_data(exception = nil)
     exception ||= build_exception
     {
@@ -229,5 +237,20 @@ class BacktracedException < Exception
 
   def message
     "Something went wrong. Did you press the red button?"
+  end
+end
+
+if defined?(JRUBY_VERSION)
+  class JavaBacktracedException < java::lang::Exception
+    attr_accessor :backtrace
+
+    def initialize(opts)
+      super("Something went wrong. Did you press the red button?")
+      @backtrace = opts[:backtrace]
+    end
+
+    def set_backtrace(bt)
+      @backtrace = bt
+    end
   end
 end
