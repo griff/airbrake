@@ -7,6 +7,7 @@ module Airbrake
 
       # regexp (optionnally allowing leading X: for windows support)
       INPUT_FORMAT = %r{^((?:[a-zA-Z]:)?[^:]+):(\d+)(?::in `([^']+)')?$}.freeze
+      JAVA_INPUT_FORMAT = %r{^[^(]+\.([^(]+)\((.+):(\d+)\)$}.freeze
 
       # The file portion of the line (such as app/models/user.rb)
       attr_reader :file
@@ -21,7 +22,11 @@ module Airbrake
       # @param [String] unparsed_line The raw line from +caller+ or some backtrace
       # @return [Line] The parsed backtrace line
       def self.parse(unparsed_line)
-        _, file, number, method_name = unparsed_line.match(INPUT_FORMAT).to_a
+        if unparsed_line =~ INPUT_FORMAT
+          _, file, number, method_name = Regexp.last_match.to_a
+        elsif unparsed_line =~ JAVA_INPUT_FORMAT
+          _, method_name, file, number = Regexp.last_match.to_a
+        end
         new(file, number, method_name)
       end
 

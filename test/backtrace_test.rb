@@ -59,6 +59,31 @@ class BacktraceTest < Test::Unit::TestCase
     assert_equal 'index', line.method_name
   end
 
+  should "parse a java backtrace into lines" do
+    array = [
+      "Rack::MethodOverride.call(/app/vendor/bundle/gems/rack-1.4.5/lib/rack/methodoverride.rb:21)",
+      "org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(org/apache/catalina/core/ApplicationFilterChain.java:305)",
+      "Rack::Handler::Servlet.call(file:/app/vendor/bundle/gems/jruby-rack-1.1.14/lib/jruby-rack-1.1.14.jar!/rack/handler/servlet.rb:22)"
+    ]
+
+    backtrace = Airbrake::Backtrace.parse(array)
+
+    line = backtrace.lines.first
+    assert_equal '21', line.number
+    assert_equal '/app/vendor/bundle/gems/rack-1.4.5/lib/rack/methodoverride.rb', line.file
+    assert_equal 'call', line.method_name
+
+    line = backtrace.lines[1]
+    assert_equal '305', line.number
+    assert_equal 'org/apache/catalina/core/ApplicationFilterChain.java', line.file
+    assert_equal 'internalDoFilter', line.method_name
+
+    line = backtrace.lines.last
+    assert_equal '22', line.number
+    assert_equal 'file:/app/vendor/bundle/gems/jruby-rack-1.1.14/lib/jruby-rack-1.1.14.jar!/rack/handler/servlet.rb', line.file
+    assert_equal 'call', line.method_name
+  end
+
   should "be equal with equal lines" do
     one = build_backtrace_array
     two = one.dup
